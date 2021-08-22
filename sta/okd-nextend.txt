@@ -1,0 +1,106 @@
+#$@ Monitor the bootstrap installation:
+
+$$ Monitor the bootstrap process from the okd4-services node:
+$ openshift-install --dir=install_dir/ wait-for bootstrap-complete --log-level=info
+
+$$ eload the haproxy service.
+$ sudo sed '/ okd4-bootstrap /s/^/#/' /etc/haproxy/haproxy.cfg
+sudo systemctl reload haproxy
+
+
+#$@ Login to the cluster and approve CSRs:
+
+$$ Log in and check the status of your cluster:
+$ export KUBECONFIG=~/install_dir/auth/kubeconfig
+oc whoami
+oc get nodes
+oc get csr
+
+$$ Install the jq package to assist with approving multiple CSR’s at once time.
+$ wget -O jq https://github.com/stedolan/jq/releases/download/jq-1.6/jq-linux64
+chmod +x jq
+sudo mv jq /usr/local/bin/
+jq --version
+
+$$ Approve all the pending certs and check your nodes:
+$ oc get csr -ojson | jq -r '.items[] | select(.status == {} ) | .metadata.name' | xargs oc adm certificate approve
+
+$$ Check the status of the cluster operators.
+$ oc get clusteroperators
+
+$$ Get your kubeadmin password from the install_dir/auth folder and login to the web console:
+$ cat install_dir/auth/kubeadmin-password
+
+$$$ Open your web browser to https://console-openshift-console.apps.lab.okd.local/ and login as kubeadmin with the password from above:
+
+#$@  Persistent Storage:
+
+$$ Login to your okd4-services VM and begin to set up an NFS server. The following commands install the necessary packages, enable services, and configure file and folder permissions.
+$ sudo dnf install -y nfs-utils
+sudo systemctl enable nfs-server rpcbind
+sudo systemctl start nfs-server rpcbind
+sudo mkdir -p /var/nfsshare/registry
+sudo chmod -R 777 /var/nfsshare
+sudo chown -R nobody:nobody /var/nfsshare
+
+$$ Create an NFS Export
+$$ Add this line in the new /etc/exports file “/var/nfsshare 192.168.1.0/24(rw,sync,no_root_squash,no_all_squash,no_wdelay)”
+$ echo '/var/nfsshare 192.168.1.0/24(rw,sync,no_root_squash,no_all_squash,no_wdelay)' | sudo tee /etc/exports
+
+$$ Restart the nfs-server service and add firewall rules:
+$ sudo setsebool -P nfs_export_all_rw 1
+sudo systemctl restart nfs-server
+sudo firewall-cmd --permanent --zone=public --add-service mountd
+sudo firewall-cmd --permanent --zone=public --add-service rpc-bind
+sudo firewall-cmd --permanent --zone=public --add-service nfs
+sudo firewall-cmd --reload
+
+#$@  Registry configuration:
+$$ Create a persistent volume on the NFS share. Use the registry_py.yaml in okd4_files folder from the git repo:
+$ oc create -f okd4_files/registry_pv.yaml
+oc get pv
+
+$$ Edit the image-registry operator:
+$ oc edit configs.imageregistry.operator.openshift.io
+
+$$ Change the managementState: from Removed to Managed. Under storage: add the pvc: and claim: blank to attach the PV and save your changes automatically:
+managementState: Managed
+storage:
+    pvc:
+      claim:
+	  
+$$ Check your persistent volume, and it should now be claimed:
+$ oc get pv
+
+$$ Check the export size, and it should be zero. In the next section, we will push to the registry, and the file size should not be zero.
+$ du -sh /var/nfsshare/registry
+
+#$@  Create WordPress Project:
+$$ Create a new OKD project.
+$ oc new-project wordpress-test
+
+$$ Create a new app using the centos php73 s2i image from docker hub and use the WordPress GitHub repo for the source. Expose the service to create a route.
+$ oc new-app centos/php-73-centos7~https://github.com/WordPress/WordPress.git
+oc expose svc/wordpress
+
+$$ Create a new app using the centos7 MariaDB image with some environment variables:
+$ oc new-app centos/mariadb-103-centos7 --name mariadb --env MYSQL_DATABASE=wordpress --env MYSQL_USER=wordpress --env MYSQL_PASSWORD=wordpress
+
+
+****************************************************************************************
+
+$$##@ Check the size of your NFS export on the okd4-services VM. It should be around 300MB in size.
+$ du -sh /var/nfsshare/registry/
+
+$$ HTPasswd Setup:
+$$ The kubeadmin is a temporary user. The easiest way to set up a local user is with htpasswd.
+$ cd
+cd okd4_files
+htpasswd -c -B -b users.htpasswd testuser testpassword
+
+$$ Create a secret in the openshift-config project using the users.htpasswd file you generated:
+$ oc create secret generic htpass-secret --from-file=htpasswd=users.htpasswd -n openshift-config
+
+$$ Add the identity provider.
+$ oc apply -f htpasswd_provider.yaml
+

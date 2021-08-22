@@ -1,0 +1,88 @@
+$ Enable SSH 
+
+$ sudo dnf upgrade
+
+# dnf install openssh-server  									$ Install the openssh package
+$ sudo yum install openssh-server 
+$ sudo yum install openssh-clients
+
+# systemctl start sshd											$ Start the OpenSSH service
+$ sudo systemctl start sshd
+
+# systemctl status sshd											$ Check the status of the sshd service
+
+# systemctl enable sshd											$ Enable the SSH service to start after the reboot
+
+# firewall-cmd --zone=public --permanent --add-service=ssh		$ Open the firewall rules to accept incoming traffic on SSH port 22
+
+# service sshd restart
+
+$ ssh  core@server_ip											$ Connect to the SSH server with server_IP as the root user from a remote client machine
+
+
+$$$$ Change hostname
+$ hostname
+
+Type the following command to edit /etc/hostname using nano or vi text editor:
+sudo vi /etc/hostname
+Delete the old name and setup new name.
+Next Edit the /etc/hosts file:
+sudo vi /etc/hosts
+Replace any occurrence of the existing computer name with your new one.
+Reboot the system to changes take effect:
+sudo reboot
+
+
+
+19
+
+As many have already said, use ssh-keygen, i.e.
+
+$ ssh-keygen -R pong
+Also, you may like to consider temporarily turning off host key checking:
+
+$ ssh -oStrictHostKeyChecking=no root@pong
+
+
+
+
+
+
+
+Type the following commands:
+$ sudo hostname nixcraft-centos8
+
+Next edit the /etc/hostname file and update hostname:
+$ sudo vi /etc/hostname
+
+Finally, edit the /etc/hosts file and update the lines that reads your old-host-name:
+$ sudo vi /etc/hosts
+
+From:
+127.0.1.1 localhost
+
+To:
+127.0.1.1 nixcraft-centos8
+
+Save and close the file.
+
+A note about hostnamectl command
+Systemd based Linux distributions such as CentOS 8 can simply use the hostnamectl command to rename hostname. To see current setting just type:
+$ hostnamectl
+
+Sample outputs:
+
+   Static hostname: localhost.localdomain
+Transient hostname: li2025-143.members.linode.com
+         Icon name: computer-vm
+           Chassis: vm
+        Machine ID: 3e729c2d7c094902af0333ce40564ffe
+           Boot ID: e359e65f68ff45f2825134354bdc0a8d
+    Virtualization: kvm
+  Operating System: CentOS Linux 8 (Core)
+       CPE OS Name: cpe:/o:centos:centos:8
+            Kernel: Linux 4.18.0-80.7.1.el8_0.x86_64
+      Architecture: x86-64
+To change hostname from localhost.localdomain to nixcraft-centos8, enter:
+$ sudo hostnamectl set-hostname nixcraft-centos8
+$ hostnamectl

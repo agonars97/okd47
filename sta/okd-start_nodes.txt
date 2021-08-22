@@ -1,0 +1,76 @@
+#$@ Starting the bootstrap node:
+
+$$ Power on the odk4-bootstrap VM. Press the TAB key to edit the kernel boot options and add the following:
+$ coreos.inst.install_dev=/dev/sda coreos.inst.image_url=http://10.14.171.15:8080/okd4/fcos.raw.xz coreos.inst.ignition_url=http://10.14.171.15:8080/okd4/bootstrap.ign
+
+
+@#$ Starting the control plane nodes:
+
+$$ Power on the control-plane nodes and press the TAB key to edit the kernel boot options and add the following, then press enter:
+$ coreos.inst.install_dev=/dev/sda coreos.inst.image_url=http://10.14.171.15:8080/okd4/fcos.raw.xz coreos.inst.ignition_url=http://10.14.171.15:8080/okd4/master.ign
+
+
+#$@ Starting the compute nodes:
+
+$$ Power on the control-plane nodes and press the TAB key to edit the kernel boot options and add the following, then press enter:
+$ coreos.inst.install_dev=/dev/sda coreos.inst.image_url=http://10.14.171.15:8080/okd4/fcos.raw.xz coreos.inst.ignition_url=http://10.14.171.15:8080/okd4/worker.ign
+
+
+
+
+
+
+
+
+
+
+
+
+Manually gathering logs with SSH access to your host(s)
+Manually gather logs in situations where must-gather or automated collection methods do not work.
+
+Prerequisites
+You must have SSH access to your host(s).
+
+Procedure
+Collect the bootkube.service service logs from the bootstrap host using the journalctl command by running:
+
+
+$ journalctl -b -f -u bootkube.service
+Collect the bootstrap host’s container logs using the podman logs. This is shown as a loop to get all of the container logs from the host:
+
+
+$ for pod in $(sudo podman ps -a -q); do sudo podman logs $pod; done
+Alternatively, collect the host’s container logs using the tail command by running:
+
+
+# tail -f /var/lib/containers/storage/overlay-containers/*/userdata/ctr.log
+Collect the kubelet.service and crio.service service logs from the master and worker hosts using the journalctl command by running:
+
+
+$ journalctl -b -f -u kubelet.service -u crio.service
+Collect the master and worker host container logs using the tail command by running:
+
+
+$ sudo tail -f /var/log/containers/*
+Manually gathering logs without SSH access to your host(s)
+Manually gather logs in situations where must-gather or automated collection methods do not work.
+
+If you do not have SSH access to your node, you can access the systems journal to investigate what is happening on your host.
+
+Prerequisites
+Your OKD installation must be complete.
+
+Your API service is still functional.
+
+You have system administrator privileges.
+
+Procedure
+Access journald unit logs under /var/log by running:
+
+
+$ oc adm node-logs --role=master -u kubelet
+Access host file paths under /var/log by running:
+
+
+$ oc adm node-logs --role=master --path=openshift-apiserver

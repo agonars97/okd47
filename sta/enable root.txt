@@ -1,0 +1,81 @@
+As root, open the /etc/sudoers file.
+
+# visudo
+The /etc/sudoers file defines the policies applied by the sudo command.
+
+In the /etc/sudoers file, find the lines that grant sudo access to users in the administrative wheel group.
+
+## Allows people in group wheel to run all commands
+%wheel        ALL=(ALL)       ALL
+Make sure the line that starts with %wheel does not have the # comment character before it.
+Save any changes, and exit the editor.
+Add users you want to grant sudo access to into the administrative wheel group.
+
+ # usermod --append -G wheel username
+Replace username with the name of the user.
+
+Verification steps
+
+Verify that the user is added to the administrative wheel group:
+
+# id username
+uid=5000(username) gid=5000(_username) groups=5000(username),10(wheel)
+24.3. Enabling unprivileged users to run certain commands
+You can configure a policy that allows unprivileged user to run certain command on a specific workstation. To configure this policy, you need to edit the sudoers.d file.
+
+Prerequisites
+
+root access
+Procedure
+
+As root, create a new sudoers.d directory under /etc/:
+
+# mkdir -p /etc/sudoers.d/
+Create a new file in the /etc/sudoers.d directory:
+
+# visudo -f /etc/sudoers.d/file-name
+Replace file-name with the name of the file you want to create. The file will open automatically.
+
+Add the following line to the newly created file:
+
+username hostname = /path/to/the/command
+Replace username with the name of the user. Replace hostname with the name of the host. Replace /path/to/the/command with the absolute path to the command (for example, /usr/bin/yum).
+
+Save any changes, and exit the editor.
+
+Example 24.1. Enabling an unprivileged user to install programs with yum and dnf
+
+To enable the user sarah to install programs on the localhost.localdomain workstation using the yum and dnf utilities with sudo privileges, use:
+
+As root, create a new sudoers.d directory under /etc/:
+
+# mkdir -p /etc/sudoers.d/
+Create a new file in the /etc/sudoers.d directory:
+
+# visudo -f /etc/sudoers.d/sarah
+The file will open automatically.
+
+Add the following line to the /etc/sudoers.d/sarah file:
+
+sarah localhost.localdomain = /usr/bin/yum, /usr/bin/dnf
+Ensure that the two command paths are separated by a , comma followed by a space.
+
+Optional: To receive email notifications every time the user sarah attempts to use sudo privileges, add the following lines to the file:
+
+Defaults    mail_always
+Defaults    mailto="email@domain.com"
+To verify if the user sarah can run the yum command with sudo privileges, switch the account:
+
+# su sarah -
+Enter the sudo yum command:
+
+$ sudo yum
+[sudo] password for sarah:
+Enter the sudo password for the user sarah.
+
+The system displays the list of yum commands and options:
+
+...
+usage: yum [options] COMMAND
+...
+If you receive the sarah is not in the sudoers file. This incident will be reported. message, the configuration was not completed correctly. Ensure that you are executing this procedure as root and that you followed the steps thoroughly.
