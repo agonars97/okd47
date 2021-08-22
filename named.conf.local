@@ -1,0 +1,9 @@
+zone "okd.local" {
+    type master;
+    file "/etc/named/zones/db.okd.local"; # zone file path
+};
+
+zone "171.14.10.in-addr.arpa" {
+    type master;
+    file "/etc/named/zones/db.10.14.171";  # 10.14.171.0/24 subnet
+};

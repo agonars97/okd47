@@ -1,0 +1,24 @@
+$TTL    604800
+@       IN      SOA     bidc-services.okd.local. admin.okd.local. (
+                  6     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800     ; Negative Cache TTL
+)
+
+; name servers - NS records
+    IN      NS      bidc-services.okd.local.
+
+; name servers - PTR records
+15    IN    PTR    bidc-services.okd.local.
+
+; OpenShift Container Platform Cluster - PTR records
+37    IN    PTR    bidc-bootstrap.lab.okd.local.
+38    IN    PTR    bidc-control-plane-1.lab.okd.local.
+39    IN    PTR    bidc-control-plane-2.lab.okd.local.
+40    IN    PTR    bidc-control-plane-3.lab.okd.local.
+41    IN    PTR    bidc-compute-1.lab.okd.local.
+42    IN    PTR    bidc-compute-2.lab.okd.local.
+15    IN    PTR    api.lab.okd.local.
+15    IN    PTR    api-int.lab.okd.local.

@@ -1,0 +1,38 @@
+$TTL    604800
+@       IN      SOA     bidc-services.okd.local. admin.okd.local. (
+                  1     ; Serial
+             604800     ; Refresh
+              86400     ; Retry
+            2419200     ; Expire
+             604800     ; Negative Cache TTL
+)
+
+; name servers - NS records
+    IN      NS      bidc-services
+
+; name servers - A records
+bidc-services.okd.local.          IN      A       10.14.171.15
+
+; OpenShift Container Platform Cluster - A records
+bidc-bootstrap.lab.okd.local.        IN      A      10.14.171.37
+bidc-control-plane-1.lab.okd.local.         IN      A     10.14.171.38
+bidc-control-plane-2.lab.okd.local.         IN      A     10.14.171.39
+bidc-control-plane-3.lab.okd.local.         IN      A     10.14.171.40
+bidc-compute-1.lab.okd.local.        IN      A      10.14.171.41
+bidc-compute-2.lab.okd.local.        IN      A      10.14.171.42
+
+; OpenShift internal cluster IPs - A records
+api.lab.okd.local.    IN    A    10.14.171.15
+api-int.lab.okd.local.   IN    A    10.14.171.15
+*.apps.lab.okd.local.    IN    A    10.14.171.15
+etcd-0.lab.okd.local.    IN    A    10.14.171.38
+etcd-1.lab.okd.local.    IN    A    10.14.171.39
+etcd-2.lab.okd.local.    IN    A    10.14.171.40
+console-openshift-console.apps.lab.okd.local.     IN     A     10.14.171.15
+oauth-openshift.apps.lab.okd.local.     		  IN     A     10.14.171.15
+
+; OpenShift internal cluster IPs - SRV records
+_etcd-server-ssl._tcp.lab.okd.local.    86400     IN    SRV     0    10    2380    etcd-0.lab
+_etcd-server-ssl._tcp.lab.okd.local.    86400     IN    SRV     0    10    2380    etcd-1.lab
+_etcd-server-ssl._tcp.lab.okd.local.    86400     IN    SRV     0    10    2380    etcd-2.lab
+
