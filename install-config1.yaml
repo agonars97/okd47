@@ -1,0 +1,37 @@
+apiVersion: v1
+baseDomain: okd.local
+metadata:
+  name: lab
+
+compute:
+- hyperthreading: Enabled
+  name: worker
+  replicas: 0
+
+controlPlane:
+  hyperthreading: Enabled
+  name: master
+  replicas: 3
+
+networking:
+  clusterNetwork:
+  - cidr: 10.128.0.0/14 
+    hostPrefix: 23 
+  networkType: OpenShiftSDN
+  serviceNetwork: 
+  - 172.30.0.0/16
+
+platform:
+  vsphere:
+    vcenter: 10.14.60.100
+    username: "tienpk@vsphere.local"
+    password: "Fpt@1309"
+    datacenter: Fis-cloud
+    defaultDatastore: V5100_P0_FAST_VOL01
+    folder: /Fis-Cloud/vm/FIS_SCS_ResourcePool
+    cluster: DC-Telehouse-Cluster
+
+fips: false
+
+pullSecret: '{"auths":{"fake":{"auth": "bar"}}}' 
+sshKey: 'ssh-ed25519 AAAA...'   
